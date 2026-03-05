@@ -33,7 +33,7 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
   }, [acumSaldoFinal]);
 
   function update(key, val) {
-    const next = { ...p, [key]: parseFloat(val) || 0 };
+    const next = { ...p, [key]: val === '' ? '' : Number(val) };
     setP(next);
     onParamsChange?.('ret', next);
   }

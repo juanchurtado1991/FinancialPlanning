@@ -18,9 +18,9 @@ export default function SaldoFondo({ retCalc, retParams, params: extParams, onPa
   }, [extParams]);
 
   function updateAnios(v) {
-    const val = parseInt(v) || 40;
+    const val = v === '' ? '' : parseInt(v);
     setAnios(val);
-    onParamsChange?.('saldo', { anios: val });
+    onParamsChange?.('saldo', { anios: val || 40 }); // pass 40 to parent if empty to avoid crash
   }
 
   const fondoTotal   = retParams?.fondoTotal   ?? 220000;

@@ -18,7 +18,7 @@ export default function Acumulacion({ params: extParams, onParamsChange, onCalcR
   useEffect(() => { if (extParams) setP({ ...DEFAULTS, ...extParams }); }, [extParams]);
 
   function update(key, val) {
-    const next = { ...p, [key]: parseFloat(val) || 0 };
+    const next = { ...p, [key]: val === '' ? '' : Number(val) };
     setP(next);
     onParamsChange?.('acum', next);
   }
