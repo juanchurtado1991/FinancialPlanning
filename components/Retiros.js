@@ -5,15 +5,14 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale,
   BarElement, Tooltip, Legend,
 } from 'chart.js';
-import { calcRetiros, fmt, fmtPct, fmtNum } from '@/lib/calculations';
+import { calcRetiros, calcSaldo, fmt, fmtPct, fmtNum } from '@/lib/calculations';
 import { ParamInput } from './Acumulacion';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 const DEFAULTS = {
-  fondoTotal: 220000, invertidoElsal: 100000, reqMensualEur: 800,
-  tasaCambio: 1.2, tasaElsal: 8, fondoExt: 60000, tasaExt: 4,
-  inflacion: 3, anios: 40,
+  fondoTotal: 220000, reqMensualUSD: 1000,
+  tasaRendimiento: 6, inflacion: 3, anios: 40,
 };
 
 export default function Retiros({ params: extParams, onParamsChange, onCalcReady, acumSaldoFinal }) {
@@ -40,23 +39,44 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
 
   const r = calcRetiros(p);
 
+  // Calculate how many years the fund lasts
+  const saldoCalc = calcSaldo({
+    fondoTotal:  p.fondoTotal,
+    tasaPond:    r.tasaPond,
+    rInflacion:  r.rInflacion,
+    reqAnualUSD: r.reqAnualUSD,
+    anios:       100,
+  });
+  const aniosDura      = saldoCalc.agotIdx >= 0 ? saldoCalc.agotIdx + 1 : null;
+  const fondoDuraLabel = aniosDura === null ? '100+ años' : `${aniosDura} año${aniosDura === 1 ? '' : 's'}`;
+  const fondoDuraColor = aniosDura === null || aniosDura > 30 ? '#34d399' : aniosDura > 10 ? '#fbbf24' : '#f87171';
+  const fondoDuraIcon  = aniosDura === null || aniosDura > 30 ? '✅' : aniosDura > 10 ? '⚠️' : '🔴';
+
   // Expose calc result to parent (for Saldo del Fondo)
   useEffect(() => { onCalcReady?.(r); }, [r.reqAnualUSD, r.tasaPond, r.rInflacion, onCalcReady]);
 
+  const diff = r.ingresoAnual - r.reqAnualUSD;
+  const diffPositive = diff >= 0;
+
   const chartData = {
-    labels: ['Escenario Actual'],
+    labels: ['Ingresos del Fondo', 'Requerimiento Anual'],
     datasets: [
-      { label: 'Requerimiento',  data: [r.reqAnualUSD],  backgroundColor: 'rgba(248,113,113,0.75)', borderWidth: 0, borderRadius: 5 },
-      { label: 'Solo ELSAL',     data: [r.ingresoElsal], backgroundColor: 'rgba(52,211,153,0.75)',  borderWidth: 0, borderRadius: 5 },
-      { label: 'Solo Extranjero',data: [r.ingresoExt],   backgroundColor: 'rgba(251,191,36,0.75)',  borderWidth: 0, borderRadius: 5 },
-      { label: 'Mixto',          data: [r.ingresoMixto], backgroundColor: 'rgba(91,141,238,0.75)',  borderWidth: 0, borderRadius: 5 },
+      {
+        label: 'USD / año',
+        data: [r.ingresoAnual, r.reqAnualUSD],
+        backgroundColor: [
+          diffPositive ? 'rgba(52,211,153,0.75)' : 'rgba(91,141,238,0.75)',
+          'rgba(248,113,113,0.75)',
+        ],
+        borderWidth: 0, borderRadius: 6,
+      },
     ],
   };
 
   const chartOpts = {
     responsive: true, maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 12, padding: 14 } },
+      legend: { display: false },
       tooltip: {
         backgroundColor: 'rgba(15,22,41,0.95)', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1,
         callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)}` },
@@ -68,14 +88,9 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
     },
   };
 
-  function signDiff(diff) {
-    const cls = diff >= 0 ? 'cell-positive' : 'cell-negative';
-    return <strong className={cls}>{(diff >= 0 ? '+' : '') + fmt(diff)}</strong>;
-  }
-
   function downloadCSV() {
-    const header = ['Año','Efectivo Req ($)','Tasa Ponderada','Monto a Invertir'];
-    const csvRows = r.rows.map(row => [row.anio, Math.round(row.retiro), (row.tasaPond * 100).toFixed(4), Math.round(row.montoInv)]);
+    const header = ['Año', 'Retiro Anual ($)', 'Monto a Invertir ($)'];
+    const csvRows = r.rows.map(row => [row.anio, Math.round(row.retiro), Math.round(row.montoInv)]);
     const csv = [header, ...csvRows].map(r => r.join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'retiros.csv'; a.click();
@@ -93,17 +108,26 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
               🔗 Fondo Total enlazado con <strong>Acumulación</strong> ({fmt(acumSaldoFinal)})
             </div>
           )}
-          <ParamInput label="Monto Total del Fondo"          hint="Disponible para invertir"   prefix="$" value={p.fondoTotal}      onChange={v => update('fondoTotal', v)}      step="1000" />
-          <ParamInput label="Monto ya invertido en ELSAL"    hint="Inversión local actual"      prefix="$" value={p.invertidoElsal}  onChange={v => update('invertidoElsal', v)}  step="1000" />
-          <ParamInput label="Requerimiento Mensual"          hint="Efectivo mensual en euros"   prefix="€" value={p.reqMensualEur}   onChange={v => update('reqMensualEur', v)}   step="50" />
-          <ParamInput label="Tasa de Cambio €→$"             hint="1 euro = X dólares"          suffix="$/€" value={p.tasaCambio}   onChange={v => update('tasaCambio', v)}      step="0.05" min="0.5" max="5" />
-          <ParamInput label="Tasa ELSAL (anual)"             hint="Rendimiento inversiones locales" suffix="%" value={p.tasaElsal}  onChange={v => update('tasaElsal', v)}       step="0.5" min="0" max="30" />
-          <ParamInput label="Fondo Ext. ($)" hint="Invertido en el extranjero" prefix="$"
-            value={p.fondoExt} onChange={v => update('fondoExt', v)} step="5000" />
-          <ParamInput label="Tasa Ext. (%)" hint="Rendimiento extranjero" suffix="%"
-            value={p.tasaExt} onChange={v => update('tasaExt', v)} step="0.5" min="0" />
-          <ParamInput label="Inflación (%)" hint="Tasa de inflación anual" suffix="%"
-            value={p.inflacion} onChange={v => update('inflacion', v)} step="0.5" min="0" />
+          <ParamInput label="Monto Total del Fondo"    hint="Capital disponible para invertir" prefix="$" value={p.fondoTotal}        onChange={v => update('fondoTotal', v)}        step="1000" />
+          <ParamInput label="Requerimiento Mensual"    hint="Efectivo que necesitas al mes"    prefix="$" value={p.reqMensualUSD}      onChange={v => update('reqMensualUSD', v)}      step="50" />
+
+          {/* Duration indicator */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10,
+            background: 'rgba(0,0,0,0.18)', border: `1.5px solid ${fondoDuraColor}33`,
+            borderLeft: `4px solid ${fondoDuraColor}`,
+            borderRadius: 8, padding: '10px 14px', margin: '2px 0 6px',
+          }}>
+            <span style={{ fontSize: 22 }}>{fondoDuraIcon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 2 }}>Con este retiro mensual, el fondo dura</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: fondoDuraColor, lineHeight: 1 }}>{fondoDuraLabel}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Fondo: {fmt(p.fondoTotal)} · Retiro año 1: {fmt(r.reqAnualUSD)}/año</div>
+            </div>
+          </div>
+
+          <ParamInput label="Tasa de Rendimiento"      hint="% de retorno anual del fondo"    suffix="%" value={p.tasaRendimiento}    onChange={v => update('tasaRendimiento', v)}    step="0.5" min="0" max="30" />
+          <ParamInput label="Inflación (%)"            hint="Tasa de inflación anual"         suffix="%" value={p.inflacion}           onChange={v => update('inflacion', v)}           step="0.5" min="0" />
           <div className="divider" />
           <button className="btn btn-primary btn-sm" style={{ width: '100%' }} onClick={downloadCSV}>
             ⬇️ Descargar Excel / CSV
@@ -113,35 +137,26 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
         {/* Right: results + chart */}
         <div className="retiros-right">
           <div className="scenarios-grid">
-            <div className="scenario-card glass-card scenario-elsal">
-              <div className="scenario-icon">🇸🇻</div>
-              <h4>Solo ELSAL</h4>
-              <div className="scenario-stat"><span>Ingreso Anual</span><strong>{fmt(r.ingresoElsal)}</strong></div>
-              <div className="scenario-stat"><span>vs Requerimiento</span>{signDiff(r.ingresoElsal - r.reqAnualUSD)}</div>
+            <div className="scenario-card glass-card scenario-mixto">
+              <div className="scenario-icon">📋</div>
+              <h4>Requerimiento Anual</h4>
+              <div className="scenario-stat"><span>Necesidad Total</span><strong>{fmt(r.reqAnualUSD)}</strong></div>
             </div>
             <div className="scenario-card glass-card scenario-ext">
-              <div className="scenario-icon">🌍</div>
-              <h4>Solo Extranjero</h4>
-              <div className="scenario-stat"><span>Ingreso Anual</span><strong>{fmt(r.ingresoExt)}</strong></div>
-              <div className="scenario-stat"><span>vs Requerimiento</span>{signDiff(r.ingresoExt - r.reqAnualUSD)}</div>
+              <div className="scenario-icon">💰</div>
+              <h4>Ingreso del Fondo</h4>
+              <div className="scenario-stat"><span>Generado Anual</span><strong>{fmt(r.ingresoAnual)}</strong></div>
             </div>
-            <div className="scenario-card glass-card scenario-mixto">
-              <div className="scenario-icon">⚖️</div>
-              <h4>Mixto</h4>
-              <div className="scenario-stat"><span>Ingreso Anual</span><strong>{fmt(r.ingresoMixto)}</strong></div>
-              <div className="scenario-stat"><span>vs Requerimiento</span>{signDiff(r.ingresoMixto - r.reqAnualUSD)}</div>
+            <div className="scenario-card glass-card scenario-elsal">
+              <div className="scenario-icon">{diffPositive ? '✅' : '🔴'}</div>
+              <h4>Superávit / Déficit</h4>
+              <div className="scenario-stat"><span>Diferencia Anual</span><strong className={diffPositive ? 'cell-positive' : 'cell-negative'}>{(diff >= 0 ? '+' : '') + fmt(diff)}</strong></div>
             </div>
-          </div>
-
-          <div className="metrics-row">
-            <div className="metric-card glass-card"><span className="metric-label">Requerimiento Anual</span><span className="metric-value">{fmt(r.reqAnualUSD)}</span></div>
-            <div className="metric-card glass-card"><span className="metric-label">Tasa Ponderada Mixta</span><span className="metric-value">{fmtPct(r.tasaPond)}</span></div>
-            <div className="metric-card glass-card"><span className="metric-label">Fondo Disp. ELSAL</span><span className="metric-value">{fmt(r.fondoElsalDisp)}</span></div>
           </div>
 
           <div className="chart-panel glass-card">
-            <div className="chart-title">Ingresos vs Requerimiento</div>
-            <div className="chart-container" style={{ height: 200 }}>
+            <div className="chart-title">Ingresos del Fondo vs Requerimiento Anual</div>
+            <div className="chart-container" style={{ height: 220 }}>
               <Bar data={chartData} options={chartOpts} />
             </div>
           </div>
@@ -165,7 +180,7 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
           <table className="data-table">
             <thead>
               <tr>
-                <th>Año</th><th>Efectivo Req. ($)</th><th className="hide-mobile">Tasa Ponderada</th><th>Monto a Invertir</th>
+                <th>Año</th><th>Retiro Anual ($)</th><th className="hide-mobile">Tasa Rendimiento</th><th>Capital Necesario</th>
               </tr>
             </thead>
             <tbody>

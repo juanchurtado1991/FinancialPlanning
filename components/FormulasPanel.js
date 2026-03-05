@@ -34,8 +34,8 @@ export default function FormulasPanel({ open, onClose }) {
             <h3>💸 Retiros</h3>
             <FormulaCard
               title="Requerimiento Anual (USD)"
-              expr={<>R<sub>USD</sub> = (Req<sub>mensual</sub> × 12) × TC</>}
-              desc="El requerimiento en euros × 12 meses, convertido a dólares con la tasa de cambio."
+              expr={<>R<sub>anual</sub> = Req<sub>mensual</sub> × 12</>}
+              desc="El requerimiento mensual en dólares multiplicado por 12 da el total anual que necesitas retirar del fondo."
             />
             <FormulaCard
               title="Retiro con Inflación (año n)"
@@ -43,43 +43,38 @@ export default function FormulasPanel({ open, onClose }) {
               desc="El retiro crece cada año según la tasa de inflación π, compuesto año a año."
             />
             <FormulaCard
-              title="Tasa Ponderada Mixta"
-              expr={<>r<sub>pond</sub> = (ELSAL × r<sub>ELSAL</sub> + Ext × r<sub>Ext</sub>) / Fondo</>}
-              desc="Media ponderada de las tasas según el peso relativo de cada inversión en el fondo total."
-            />
-            <FormulaCard
-              title="Ingreso Anual (por escenario)"
-              expr="Ingreso = Fondo × Tasa"
-              desc="El ingreso que generaría el fondo si todo estuviera en ELSAL, en el extranjero, o mixto."
+              title="Ingreso Anual del Fondo"
+              expr="Ingreso = Fondo × Tasa de Rendimiento"
+              desc="El ingreso que genera el fondo con su tasa de rendimiento anual. Si el ingreso supera el requerimiento, el fondo crece; si no, consume capital."
             />
           </div>
 
           <div className="formula-section">
             <h3>📊 Saldo del Fondo</h3>
             <FormulaCard
-              title="Intereses del Período"
-              expr={<>I<sub>n</sub> = S<sub>inicial,n</sub> × r<sub>pond</sub></>}
-              desc="Los intereses se calculan sobre el saldo inicial del año, usando la tasa ponderada mixta."
+              title="Ganancia del Período"
+              expr={<>I<sub>n</sub> = S<sub>inicial,n</sub> × r</>}
+              desc="La ganancia se calcula sobre el saldo inicial del año, usando la tasa de rendimiento esperada."
             />
             <FormulaCard
-              title="Saldo Final"
+              title="Capital al Final"
               expr={<>S<sub>final,n</sub> = S<sub>inicial,n</sub> + I<sub>n</sub> − R<sub>n</sub></>}
               desc="Al saldo inicial se le suman los intereses y se restan los retiros del período."
             />
             <FormulaCard
-              title="Poder Adquisitivo"
-              expr={<>PA<sub>n</sub> = S<sub>final,n</sub> / (1 + π)<sup>n</sup></>}
-              desc="El saldo deflactado a valor presente para reflejar el poder adquisitivo real."
+              title="Valor Real (sin inflación)"
+              expr={<>VR<sub>n</sub> = S<sub>final,n</sub> / (1 + π)<sup>n</sup></>}
+              desc="El saldo deflactado a valor presente para reflejar el poder adquisitivo real libre de inflación."
             />
             <FormulaCard
-              title="Cobertura en Años"
-              expr={<>C<sub>n</sub> = S<sub>final,n</sub> / R<sub>n</sub></>}
-              desc="Cuántos años de retiro quedan cubiertos con el saldo actual del fondo."
+              title="Años de Respaldo"
+              expr={<>AR<sub>n</sub> = S<sub>final,n</sub> / R<sub>n</sub></>}
+              desc="Cuántos años de retiros teóricamente quedan cubiertos con el saldo actual del fondo."
             />
             <FormulaCard
-              title="Ingresos − Retiros"
-              expr={<>Δ<sub>n</sub> = I<sub>n</sub> − R<sub>n</sub></>}
-              desc="Si es positivo, el fondo genera más de lo que se retira. Si es negativo, se consume capital."
+              title="Balance Anual"
+              expr={<>BA<sub>n</sub> = I<sub>n</sub> − R<sub>n</sub></>}
+              desc="Si es positivo, el fondo genera más de lo que sacas. Si es negativo, estás consumiendo tu capital original."
             />
           </div>
 

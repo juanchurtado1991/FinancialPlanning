@@ -40,27 +40,25 @@ export default function TutorialPanel({ open, onClose }) {
             color="green"
             steps={[
               'Ve a "Retiros". Aquí defines cuánto necesitas vivir cada mes.',
-              'Ingresa tu Requerimiento Mensual en euros (o tu moneda).',
-              'Ajusta la Tasa de Cambio si tus gastos son en otra moneda.',
-              'Compara 3 escenarios: invertir todo en ELSAL, todo en el extranjero, o mixto.',
-              'El escenario Mixto suele ser el más equilibrado.',
+              'Ingresa tu Requerimiento Mensual en dólares (USD).',
+              'Ajusta la Tasa de Rendimiento: el % anual que genera tu fondo.',
+              'Ajusta la Inflación para ver cómo crece el retiro año a año.',
+              'El indicador muestra automáticamente cuántos años durará el fondo.',
               'La tabla de inflación muestra cómo cambia lo que necesitas año a año.',
             ]}
-            tip={'Si el "vs Requerimiento" aparece en rojo, el ingreso no cubre los gastos. Ajusta los parámetros.'}
+            tip={'Si el "Superávit / Déficit" aparece en rojo, el ingreso no cubre los gastos. Baja el retiro o aumenta la tasa de rendimiento.'}
           />
 
-          {/* Step 3 */}
-          <TutStep
-            num="3" icon="📊" title="Saldo del Fondo — ¿Cuánto tiempo dura?"
-            color="purple"
-            steps={[
-              'Ve a "Saldo del Fondo". Usa los resultados de Retiros automáticamente.',
-              'Verás año a año cómo evoluciona tu fondo mientras retiras.',
-              'Las filas en verde = el fondo genera más de lo que retiras (superávit).',
-              'Las filas en rojo = se consume capital (déficit).',
-              '"Año de agotamiento" indica cuándo se acabaría el dinero.',
-              'Si el fondo se agota pronto, regresa a Retiros y baja los gastos.',
-            ]}
+            <TutStep
+              num="3" icon="📊" title="Saldo del Fondo — ¿Cuánto tiempo dura?"
+              color="purple"
+              steps={[
+                'Ve a "Saldo del Fondo". Este toma el saldo que acumulaste y simula tu fase de retiro.',
+                'Puedes ajustar tus parámetros directamente aquí y verás el cambio en vivo.',
+                '"Se agota" te confirma matemáticamente en qué año tu fondo llegará a cero.',
+                '"Pico Máx" te dice cuál será el valor más alto en dólares que alcanzará tu cuenta antes de empezar a bajar.',
+                'Un "Balance Anual" negativo (en rojo en la tabla) significa que tus retiros son mayores a la ganancia de ese año, por lo que consumes capital.',
+              ]}
             tip={'Idealmente quieres que el fondo nunca se agote ("No aplica" en agotamiento).'}
           />
 

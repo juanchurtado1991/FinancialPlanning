@@ -12,9 +12,8 @@ const LS_KEY = 'finsim_params';
 
 const DEFAULTS = {
   acum:  { montoInicial: 10000, aportAnual: 5000, tasa: 4, anios: 40 },
-  ret:   { fondoTotal: 220000, invertidoElsal: 100000, reqMensualEur: 800,
-           tasaCambio: 1.2, tasaElsal: 8, fondoExt: 60000,
-           tasaExt: 4, inflacion: 3, anios: 40 },
+  ret:   { fondoTotal: 220000, reqMensualUSD: 1000,
+           tasaRendimiento: 6, inflacion: 3, anios: 40 },
   saldo: { anios: 40 },
 };
 
@@ -171,7 +170,7 @@ export default function HomePage() {
           {section === 'acumulacion' && (
             <Acumulacion
               key={`acum-${resetKey}`}
-              params={loadedParams?.acum}
+              params={allParams.current.acum}
               onParamsChange={handleParamsChange}
               onCalcReady={(r) => setAcumSaldoFinal(r.saldoFinal)}
             />
@@ -179,7 +178,7 @@ export default function HomePage() {
           {section === 'retiros' && (
             <Retiros
               key={`ret-${resetKey}`}
-              params={loadedParams?.ret}
+              params={allParams.current.ret}
               onParamsChange={handleParamsChange}
               onCalcReady={setRetCalc}
               acumSaldoFinal={acumSaldoFinal}
@@ -188,9 +187,9 @@ export default function HomePage() {
           {section === 'saldo' && (
             <SaldoFondo
               key={`saldo-${resetKey}`}
-              retCalc={retCalc}
-              retParams={retParams}
-              params={loadedParams}
+              acumParams={allParams.current.acum}
+              retParams={allParams.current.ret}
+              saldoParams={allParams.current.saldo}
               onParamsChange={handleParamsChange}
             />
           )}
@@ -240,53 +239,65 @@ export default function HomePage() {
   );
 }
 
-// ─── Intro Section ────────────────────────────────────────────────────────────
 function IntroSection({ onNavigate, onOpenTutorial }) {
   return (
-    <div className="content-section">
-      <div className="intro-hero glass-card">
-        <div className="intro-icon">📊</div>
-        <h2>Simulador de Fondo de Acumulación y Retiro</h2>
-        <p>
-          Esta herramienta te permite planificar financieramente el crecimiento y sostenibilidad de
-          tu fondo de inversión, simulando escenarios de acumulación y retiro con parámetros personalizados.
+    <div className="content-section" style={{ gap: '28px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
+      {/* Hero Banner */}
+      <div className="intro-hero glass-card" style={{ padding: 'clamp(30px, 5vw, 56px) 24px', position: 'relative', overflow: 'hidden' }}>
+        {/* Decorative background glow */}
+        <div style={{ position: 'absolute', top: -100, left: '50%', transform: 'translateX(-50%)', width: 400, height: 400, background: 'radial-gradient(circle, rgba(91,141,238,0.15) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }} />
+        
+        <div className="intro-icon" style={{ fontSize: 'clamp(40px, 8vw, 56px)', marginBottom: '16px' }}>🔮</div>
+        <h2 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, marginBottom: '16px', lineHeight: 1.2 }}>
+          Domina tu Futuro Financiero
+        </h2>
+        <p style={{ fontSize: 'clamp(14px, 3vw, 16px)', color: 'var(--text-secondary)', maxWidth: '640px', margin: '0 auto 32px', lineHeight: 1.6 }}>
+          Este simulador te permite visualizar matemáticamente cómo crecerá tu patrimonio en la fase de <strong>Acumulación</strong> y cuánto tiempo te sostendrá en la fase de <strong>Retiros</strong>.
         </p>
+        
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button className="btn btn-primary" onClick={() => onNavigate('acumulacion')} style={{ padding: '12px 24px', fontSize: '15px' }}>
+            🚀 Iniciar Simulación
+          </button>
+          <button className="btn btn-ghost" onClick={onOpenTutorial} style={{ padding: '12px 24px', fontSize: '15px' }}>
+            📚 Ver Guía Rápida
+          </button>
+        </div>
       </div>
 
-      <div className="intro-cards">
+      {/* Feature Cards Grid */}
+      <div className="intro-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
         {[
-          { id:'acumulacion', icon:'📈', title:'Acumulación',
-            desc:'Simula el crecimiento del fondo con aportaciones anuales e interés compuesto.',
-            formula:'S_final = S_inicial + Aportación + (S_inicial × r)' },
-          { id:'retiros', icon:'💸', title:'Retiros',
-            desc:'Analiza ingresos vs retiros considerando inflación, tasas de cambio y múltiples fuentes.',
-            formula:'R_n = R₁ × (1 + π)^(n-1)' },
-          { id:'saldo', icon:'📊', title:'Saldo del Fondo',
-            desc:'Visualiza la evolución del fondo año a año y anticipa cuándo se agota.',
-            formula:'S_final = S_inicial + Intereses − Retiros' },
+          { id:'acumulacion', icon:'📈', title:'Paso 1: Acumulación',
+            desc:'Proyecta el crecimiento de tus inversiones gracias al poder del interés compuesto y tus aportaciones anuales.',
+            action: 'Calcular Crecimiento' },
+          { id:'retiros', icon:'💸', title:'Paso 2: Retiros',
+            desc:'Define el estilo de vida que deseas. Ajusta la inflación y descubre si tus rendimientos logran cubrir tus gastos.',
+            action: 'Analizar Gastos' },
+          { id:'saldo', icon:'📊', title:'Paso 3: Saldo del Fondo',
+            desc:'Visualiza el horizonte de vida de tu dinero. Comprueba matemáticamente el año exacto en que tu cuenta podría llegar a cero.',
+            action: 'Ver Pronóstico' },
         ].map(m => (
-          <div key={m.id} className="intro-module glass-card">
-            <div className="module-icon">{m.icon}</div>
-            <h3>{m.title}</h3>
-            <p>{m.desc}</p>
-            <div className="module-formula"><code>{m.formula}</code></div>
-            <button className="btn btn-primary btn-sm" onClick={() => onNavigate(m.id)}>
-              Ir a {m.title} →
+          <div key={m.id} className="intro-module glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px' }}>
+            <div className="module-icon" style={{ marginBottom: '12px' }}>{m.icon}</div>
+            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '10px' }}>{m.title}</h3>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6, flex: 1, marginBottom: '20px' }}>{m.desc}</p>
+            <button className="btn btn-ghost btn-sm" onClick={() => onNavigate(m.id)} style={{ alignSelf: 'flex-start', border: '1px solid var(--accent-dim)', color: 'var(--accent-light)' }}>
+              {m.action} →
             </button>
           </div>
         ))}
       </div>
 
-      <div className="intro-tips glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+      {/* Pro Tips Footer */}
+      <div className="glass-card" style={{ padding: '20px', display: 'flex', gap: '16px', alignItems: 'center', background: 'rgba(52,211,153,0.05)', borderColor: 'rgba(52,211,153,0.15)' }}>
+        <div style={{ fontSize: '28px' }}>💡</div>
         <div>
-          <h3 style={{ marginBottom: 6 }}>💡 ¿Primera vez aquí?</h3>
-          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-            Abre la guía rápida para aprender a usar el simulador paso a paso y entender todas sus funcionalidades.
+          <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--green)', marginBottom: '4px' }}>Todo está conectado en tiempo real</h4>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            Los datos que ingreses en <strong>Acumulación</strong> viajan automáticamente a <strong>Saldo del Fondo</strong>. Además, todos tus datos se guardan por defecto en este dispositivo de forma segura.
           </p>
         </div>
-        <button className="btn btn-primary" onClick={onOpenTutorial} style={{ whiteSpace: 'nowrap' }}>
-          📚 Ver Tutorial
-        </button>
       </div>
     </div>
   );
