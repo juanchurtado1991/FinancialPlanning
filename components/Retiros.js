@@ -165,7 +165,7 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
           <table className="data-table">
             <thead>
               <tr>
-                <th>Año</th><th>Efectivo Req. ($)</th><th>Tasa Ponderada</th><th>Monto a Invertir</th>
+                <th>Año</th><th>Efectivo Req. ($)</th><th className="hide-mobile">Tasa Ponderada</th><th>Monto a Invertir</th>
               </tr>
             </thead>
             <tbody>
@@ -173,7 +173,7 @@ export default function Retiros({ params: extParams, onParamsChange, onCalcReady
                 <tr key={row.anio}>
                   <td>Año {row.anio}</td>
                   <td>{fmt(row.retiro)}</td>
-                  <td>{fmtPct(row.tasaPond)}</td>
+                  <td className="hide-mobile">{fmtPct(row.tasaPond)}</td>
                   <td>{fmt(row.montoInv)}</td>
                 </tr>
               ))}

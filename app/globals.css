@@ -665,6 +665,9 @@ kbd {
 
   /* Results */
   .result-value { font-size: 13px; }
+
+  /* Utilities */
+  .hide-mobile { display: none !important; }
 }
 
 @media (max-width: 480px) {

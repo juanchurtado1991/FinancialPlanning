@@ -144,9 +144,14 @@ export default function SaldoFondo({ retCalc, retParams, params: extParams, onPa
           <table className="data-table">
             <thead>
               <tr>
-                {['Año','Saldo Inicial','Intereses','Retiros','Saldo Final','Poder Adquis.','Ingr − Ret','Cobertura'].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
+                <th>Año</th>
+                <th className="hide-mobile">Saldo Inicial</th>
+                <th className="hide-mobile">Intereses</th>
+                <th>Retiros</th>
+                <th>Saldo Final</th>
+                <th className="hide-mobile">Poder Adquis.</th>
+                <th className="hide-mobile">Ingr − Ret</th>
+                <th className="hide-mobile">Cobertura</th>
               </tr>
             </thead>
             <tbody>
@@ -157,13 +162,13 @@ export default function SaldoFondo({ retCalc, retParams, params: extParams, onPa
                 return (
                   <tr key={r.anio} className={rowCls}>
                     <td>Año {r.anio}</td>
-                    <td>{fmt(r.saldoInicial)}</td>
-                    <td className="cell-positive">{fmt(r.intereses)}</td>
+                    <td className="hide-mobile">{fmt(r.saldoInicial)}</td>
+                    <td className="cell-positive hide-mobile">{fmt(r.intereses)}</td>
                     <td>{fmt(r.retiro)}</td>
                     <td><strong>{fmt(r.saldoFinal)}</strong></td>
-                    <td>{fmt(r.poderAdq)}</td>
-                    <td className={deltaCls}>{(r.delta >= 0 ? '+' : '') + fmt(r.delta)}</td>
-                    <td className={cobCls}>{fmtYrs(r.cobertura)}</td>
+                    <td className="hide-mobile">{fmt(r.poderAdq)}</td>
+                    <td className={`hide-mobile ${deltaCls}`}>{(r.delta >= 0 ? '+' : '') + fmt(r.delta)}</td>
+                    <td className={`hide-mobile ${cobCls}`}>{fmtYrs(r.cobertura)}</td>
                   </tr>
                 );
               })}

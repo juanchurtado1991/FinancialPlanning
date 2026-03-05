@@ -119,20 +119,23 @@ export default function Acumulacion({ params: extParams, onParamsChange, onCalcR
           <table className="data-table">
             <thead>
               <tr>
-                {['Año','Saldo Inicial','Aportación','Intereses Ganados','Saldo Final','Aport. Acumulada'].map(h => (
-                  <th key={h}>{h}</th>
-                ))}
+                <th>Año</th>
+                <th className="hide-mobile">Saldo Inicial</th>
+                <th>Aportación</th>
+                <th className="hide-mobile">Intereses</th>
+                <th>Saldo Final</th>
+                <th className="hide-mobile">Aport. Acum.</th>
               </tr>
             </thead>
             <tbody>
               {rows.map(r => (
                 <tr key={r.anio}>
                   <td>Año {r.anio}</td>
-                  <td>{fmt(r.saldoInicial)}</td>
+                  <td className="hide-mobile">{fmt(r.saldoInicial)}</td>
                   <td>{fmt(r.aportAnual)}</td>
-                  <td className="cell-positive">{fmt(r.intereses)}</td>
+                  <td className="cell-positive hide-mobile">{fmt(r.intereses)}</td>
                   <td><strong>{fmt(r.saldoFinal)}</strong></td>
-                  <td>{fmt(r.aportAcum)}</td>
+                  <td className="hide-mobile">{fmt(r.aportAcum)}</td>
                 </tr>
               ))}
             </tbody>
