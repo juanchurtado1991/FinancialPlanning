@@ -162,7 +162,12 @@ export default function HomePage() {
           </header>
 
           {/* Sections */}
-          {section === 'intro' && <IntroSection onNavigate={setSection} />}
+          {section === 'intro' && (
+            <IntroSection 
+              onNavigate={setSection} 
+              onOpenTutorial={() => setTutorialOpen(true)} 
+            />
+          )}
           {section === 'acumulacion' && (
             <Acumulacion
               key={`acum-${resetKey}`}
@@ -236,7 +241,7 @@ export default function HomePage() {
 }
 
 // ─── Intro Section ────────────────────────────────────────────────────────────
-function IntroSection({ onNavigate }) {
+function IntroSection({ onNavigate, onOpenTutorial }) {
   return (
     <div className="content-section">
       <div className="intro-hero glass-card">
@@ -272,14 +277,16 @@ function IntroSection({ onNavigate }) {
         ))}
       </div>
 
-      <div className="intro-tips glass-card">
-        <h3>💡 Cómo usar este simulador</h3>
-        <ul>
-          <li><span className="badge badge-blue">Editable</span> Los campos en azul son modificables y recalculan automáticamente.</li>
-          <li><span className="badge badge-green">Auto-cálculo</span> Todos los resultados se actualizan en tiempo real.</li>
-          <li><span className="badge badge-purple">Fórmulas</span> Haz clic en "Fórmulas" para ver las ecuaciones utilizadas.</li>
-          <li><span className="badge badge-orange">Cloud</span> Guarda y carga tus escenarios en la nube con Supabase.</li>
-        </ul>
+      <div className="intro-tips glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <h3 style={{ marginBottom: 6 }}>💡 ¿Primera vez aquí?</h3>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+            Abre la guía rápida para aprender a usar el simulador paso a paso y entender todas sus funcionalidades.
+          </p>
+        </div>
+        <button className="btn btn-primary" onClick={onOpenTutorial} style={{ whiteSpace: 'nowrap' }}>
+          📚 Ver Tutorial
+        </button>
       </div>
     </div>
   );
