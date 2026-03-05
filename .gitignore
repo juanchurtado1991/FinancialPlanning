@@ -1,4 +1,20 @@
-# Financial Planning App — .gitignore
+# =====================================================
+# FinSim — .gitignore
+# =====================================================
+
+# Next.js build output
+.next/
+out/
+
+# Dependencies
+node_modules/
+
+# Environment variables — NEVER commit credentials
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
 
 # macOS
 .DS_Store
@@ -7,20 +23,23 @@
 ._*
 .Spotlight-V100
 .Trashes
+Icon?
 
 # IDE / Editor
 .idea/
 .vscode/
 *.swp
 *.swo
+*.orig
 
-# Env / secrets
-.env
-.env.local
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Build artifacts
-node_modules/
-dist/
+# Vercel
+.vercel
 
-# Excel source (optional: comment out if you want to track it)
-# *.xlsx
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
