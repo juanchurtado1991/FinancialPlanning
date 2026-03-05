@@ -1,0 +1,26 @@
+# Financial Planning App — .gitignore
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Env / secrets
+.env
+.env.local
+
+# Build artifacts
+node_modules/
+dist/
+
+# Excel source (optional: comment out if you want to track it)
+# *.xlsx
