@@ -54,6 +54,7 @@ export default function HomePage() {
   const [toast,          setToast]          = useState({ msg: '', type: '', visible: false });
   const [loadedParams,   setLoadedParams]   = useState(null);
   const [autoSaved,      setAutoSaved]      = useState(false); // shows ✓ indicator
+  const [resetKey,       setResetKey]       = useState(0); // forces 100% component remount
 
   // Retiros calc result shared with SaldoFondo
   const [retCalc,        setRetCalc]        = useState(null);
@@ -126,6 +127,10 @@ export default function HomePage() {
             try { localStorage.removeItem(LS_KEY); } catch {}
             allParams.current = { ...DEFAULTS };
             setLoadedParams(null);
+            setAcumSaldoFinal(null);
+            setRetCalc(null);
+            setRetParams({ fondoTotal: 220000 });
+            setResetKey(k => k + 1); // hard reset all components
             showToast('Datos locales borrados', 'info');
           }}
           className={sidebarOpen ? 'mobile-open' : ''}
@@ -160,6 +165,7 @@ export default function HomePage() {
           {section === 'intro' && <IntroSection onNavigate={setSection} />}
           {section === 'acumulacion' && (
             <Acumulacion
+              key={`acum-${resetKey}`}
               params={loadedParams?.acum}
               onParamsChange={handleParamsChange}
               onCalcReady={(r) => setAcumSaldoFinal(r.saldoFinal)}
@@ -167,6 +173,7 @@ export default function HomePage() {
           )}
           {section === 'retiros' && (
             <Retiros
+              key={`ret-${resetKey}`}
               params={loadedParams?.ret}
               onParamsChange={handleParamsChange}
               onCalcReady={setRetCalc}
@@ -175,6 +182,7 @@ export default function HomePage() {
           )}
           {section === 'saldo' && (
             <SaldoFondo
+              key={`saldo-${resetKey}`}
               retCalc={retCalc}
               retParams={retParams}
               params={loadedParams}
